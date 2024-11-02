@@ -1,5 +1,4 @@
-import { resolve, join } from "https://deno.land/std@0.170.0/path/mod.ts";
-import { existsSync } from "jsr:@std/fs";
+import { join, resolve } from "https://deno.land/std@0.170.0/path/mod.ts";
 import {
   handleCreateDomain,
   handleDeleteDomain,
@@ -8,9 +7,8 @@ import {
   handleRenameDomain,
   handleUploadDomain,
 } from "./domainHandlers.ts";
-import { domainSafetyChecks } from "./safetyChecks.ts";
 
-const ROOT:string = "./DOMAINS";
+const ROOT: string = "./DOMAINS";
 
 export interface RequestContext {
   METHOD: string;
@@ -37,8 +35,11 @@ export const ROUTES: Routes = {
 };
 
 export async function getContext(req: Request): Promise<RequestContext> {
-  const url = new URL(req.url)
-  const hasFormData = req.method === "POST" && (req?.headers?.get("Content-Type")?.includes("application/x-www-form-urlencoded") || req?.headers?.get("Content-Type")?.includes("multipart/form-data"))
+  const url = new URL(req.url);
+  const hasFormData = req.method === "POST" &&
+    (req?.headers?.get("Content-Type")?.includes(
+      "application/x-www-form-urlencoded",
+    ) || req?.headers?.get("Content-Type")?.includes("multipart/form-data"));
   const ctx: RequestContext = {
     METHOD: req.method,
     HOSTNAME: url.hostname,
@@ -48,8 +49,7 @@ export async function getContext(req: Request): Promise<RequestContext> {
     FULL_PATH: resolve(join(ROOT, url.hostname, url.pathname)),
     FORM_DATA: hasFormData ? await req.formData() : null,
     HEADERS: Object.fromEntries(req.headers.entries()),
-  }
-  if (ctx.FULL_PATH.endsWith("/")) ctx.FULL_PATH = ctx.FULL_PATH + "index.html"
-  console.log("ctx", ctx)
-  return ctx
+  };
+  if (ctx.FULL_PATH.endsWith("/")) ctx.FULL_PATH = ctx.FULL_PATH + "index.html";
+  return ctx;
 }

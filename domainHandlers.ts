@@ -49,6 +49,35 @@ export async function handleCreateDomain(
   const newDomain = ctx.PARAMS.domain.toLowerCase();
   const tokenDomainsKey = ["token_domains", token];
   const domainTokenKey = ["domain_token", newDomain];
+
+  let myIP: string;
+  if (import.meta.url.includes("/Users/rich/Code")) {
+    myIP = "127.0.0.1";
+  } else {
+    myIP = (await Deno.resolveDns("www.sssg.live", "A"))[0];
+  }
+
+  let dnsResponse: string[] = [];
+  try {
+    if (import.meta.url.includes("/Users/rich/Code")) {
+      dnsResponse = ["127.0.0.1"];
+    } else {
+      dnsResponse = await Deno.resolveDns(newDomain, "A");
+    }
+  } catch (_e) {
+    console.log("Domain not found:", newDomain);
+  }
+
+  if (dnsResponse.length === 0 || !dnsResponse.includes(myIP)) {
+    return new Response(
+      JSON.stringify({
+        message:
+          `DNS is not configured properly for ${newDomain}. Configure an "A" record that points to ${myIP} for ${newDomain} and then try again.`,
+      }),
+      { status: 409 },
+    );
+  }
+
   if (token && token.length > 0 && newDomain && newDomain.length > 0) {
     let [domains, domain] = await KV.getMany([tokenDomainsKey, domainTokenKey]);
     if (domains.value === null) {
@@ -156,7 +185,10 @@ export async function handleRegistration(
     await KV.set(["token_domains", id], []);
   }
   ctx.PARAMS.token = id;
-  await handleCreateDomain(ctx);
+  const response = await handleCreateDomain(ctx);
+  if (response.status !== 200) {
+    return response;
+  }
   const stagingKey = ulid();
   const stagingDomain = stagingKey + ".sssg.live";
   ctx.PARAMS.domain = stagingDomain;
