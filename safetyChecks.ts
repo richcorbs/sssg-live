@@ -3,6 +3,7 @@ import { RequestContext } from "./router.ts";
 export function domainSafetyChecks(ctx: RequestContext): Response | null {
   const safeRequests = [
     "DELETE /api/domain", // delete
+    "GET /api/domain/check", // check
     "GET /api/domains", // retrieve
     "POST /api/domain", // create
     "POST /api/domain/upload", // upload
