@@ -12,7 +12,7 @@ Deno.test("POST /api/register", async () => {
   });
 
   const uniqueId = ulid().toLowerCase();
-  const domain = uniqueId + ".sssg.live";
+  const domain = uniqueId + ".sssg.dev";
   const response = await fetch("http://domains.local:8888/api/register" + "?domain=" + domain, {
     method: "POST",
     body: JSON.stringify({})
@@ -20,7 +20,7 @@ Deno.test("POST /api/register", async () => {
   const body = await response.json();
   assertEquals(response.status, 200);
   assertEquals(body.productionDomain, domain);
-  assertStringIncludes(body.stagingDomain, ".sssg.live");
+  assertStringIncludes(body.stagingDomain, ".sssg.dev");
   assertExists(body.token);
 
   server.shutdown()

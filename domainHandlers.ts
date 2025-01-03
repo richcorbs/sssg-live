@@ -13,9 +13,7 @@ import { RequestContext, ROUTES } from "./router.ts";
 const KV = await Deno.openKv("./db");
 const ROOT = "./DOMAINS";
 
-export async function handleDomainRequest(
-  ctx: RequestContext,
-): Promise<Response> {
+export async function handleDomainRequest(ctx: RequestContext,): Promise<Response> {
   const safetyChecksResponse: Response | null = domainSafetyChecks(ctx);
   if (safetyChecksResponse !== null) return safetyChecksResponse;
 
@@ -28,9 +26,7 @@ export async function handleDomainRequest(
   return new Response("Not found", { status: 404 });
 }
 
-export async function handleHostingRequest(
-  ctx: RequestContext,
-): Promise<Response> {
+export async function handleHostingRequest(ctx: RequestContext,): Promise<Response> {
   const safetyChecksResponse: Response | null = hostingSafetyChecks(ctx);
   if (safetyChecksResponse !== null) return safetyChecksResponse;
 
@@ -42,9 +38,22 @@ export async function handleHostingRequest(
   return new Response("Not found", { status: 404 });
 }
 
-export async function handleCreateDomain(
-  ctx: RequestContext,
-): Promise<Response> {
+export function handleCheckDomain(ctx: RequestContext,): Response {
+  const domain = ctx.PARAMS?.domain?.toLowerCase();
+  if (domain && existsSync(resolve(join(ROOT, domain)))) {
+    return new Response(
+      JSON.stringify({ message: "OK" }),
+      { status: 200 },
+    );
+  } else {
+    return new Response(
+      JSON.stringify({ message: `Domain ${domain} not found.` }),
+      { status: 404 },
+    );
+  }
+}
+
+export async function handleCreateDomain(ctx: RequestContext,): Promise<Response> {
   const token = ctx.PARAMS.token;
   const newDomain = ctx.PARAMS.domain.toLowerCase();
   const tokenDomainsKey = ["token_domains", token];
@@ -54,7 +63,7 @@ export async function handleCreateDomain(
   if (import.meta.url.includes("/Users/rich/Code")) {
     myIP = "127.0.0.1";
   } else {
-    myIP = (await Deno.resolveDns("www.sssg.live", "A"))[0];
+    myIP = (await Deno.resolveDns("api.sssg.dev", "A"))[0];
   }
 
   let dnsResponse: string[] = [];
@@ -70,10 +79,7 @@ export async function handleCreateDomain(
 
   if (dnsResponse.length === 0 || !dnsResponse.includes(myIP)) {
     return new Response(
-      JSON.stringify({
-        message:
-          `DNS is not configured properly for ${newDomain}. Configure an "A" record that points to ${myIP} for ${newDomain} and then try again.`,
-      }),
+      JSON.stringify({ message: `DNS is not configured properly for ${newDomain}. Configure an "A" record that points to ${myIP} for ${newDomain} and then try again.`, }),
       { status: 409 },
     );
   }
@@ -120,9 +126,7 @@ export async function handleCreateDomain(
   }
 }
 
-export async function handleDeleteDomain(
-  ctx: RequestContext,
-): Promise<Response> {
+export async function handleDeleteDomain(ctx: RequestContext,): Promise<Response> {
   const id: string | null = ctx.PARAMS.token;
   const deleteDomain: string | null = ctx.PARAMS.domain?.toLowerCase();
   if (!id || id.length === 0 || !deleteDomain || deleteDomain.length === 0) {
@@ -175,9 +179,7 @@ export async function handleGetDomains(ctx: RequestContext): Promise<Response> {
   }
 }
 
-export async function handleRegistration(
-  ctx: RequestContext,
-): Promise<Response> {
+export async function handleRegistration(ctx: RequestContext,): Promise<Response> {
   const id = ulid();
   const domain = ctx.PARAMS.domain;
   const domains = await KV.get(["token_domains", id]);
@@ -190,7 +192,7 @@ export async function handleRegistration(
     return response;
   }
   const stagingKey = ulid();
-  const stagingDomain = stagingKey + ".sssg.live";
+  const stagingDomain = stagingKey + ".sssg.dev";
   ctx.PARAMS.domain = stagingDomain;
   await handleCreateDomain(ctx);
   return new Response(
@@ -198,9 +200,7 @@ export async function handleRegistration(
   );
 }
 
-export async function handleRenameDomain(
-  ctx: RequestContext,
-): Promise<Response> {
+export async function handleRenameDomain(ctx: RequestContext,): Promise<Response> {
   const id = ctx.PARAMS.token;
   const domain = ctx.PARAMS.domain.toLowerCase();
   const newDomain = ctx.PARAMS.newDomain.toLowerCase();
@@ -253,9 +253,7 @@ export async function handleRenameDomain(
   }
 }
 
-export async function handleUploadDomain(
-  ctx: RequestContext,
-): Promise<Response> {
+export async function handleUploadDomain(ctx: RequestContext,): Promise<Response> {
   let id: string | undefined, domain: string | undefined;
   if (ctx?.FORM_DATA === null) {
     return new Response("Bad request: missing form data", { status: 400 });
