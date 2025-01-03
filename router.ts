@@ -1,5 +1,6 @@
 import { join, resolve } from "https://deno.land/std@0.170.0/path/mod.ts";
 import {
+  handleCheckDomain,
   handleCreateDomain,
   handleDeleteDomain,
   handleGetDomains,
@@ -8,7 +9,7 @@ import {
   handleUploadDomain,
 } from "./domainHandlers.ts";
 
-const ROOT: string = "./DOMAINS";
+const ROOT: string = "/var/www";
 
 export interface RequestContext {
   METHOD: string;
@@ -21,13 +22,14 @@ export interface RequestContext {
   HEADERS: { [key: string]: string };
 }
 
-export type Handler = (ctx: RequestContext) => Promise<Response>;
+export type Handler = (ctx: RequestContext) => Promise<Response> | Response;
 export type Route = { handler: Handler };
 export type Routes = { [route: string]: Route };
 
 export const ROUTES: Routes = {
   "POST /api/domain": { handler: handleCreateDomain },
   "DELETE /api/domain": { handler: handleDeleteDomain },
+  "GET /api/domain/check": { handler: handleCheckDomain },
   "GET /api/domains": { handler: handleGetDomains },
   "POST /api/register": { handler: handleRegistration },
   "PUT /api/domain": { handler: handleRenameDomain },

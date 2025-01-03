@@ -11,7 +11,7 @@ import { domainSafetyChecks, hostingSafetyChecks } from "./safetyChecks.ts";
 import { RequestContext, ROUTES } from "./router.ts";
 
 const KV = await Deno.openKv("./db");
-const ROOT = "./DOMAINS";
+const ROOT = "/var/www";
 
 export async function handleDomainRequest(ctx: RequestContext,): Promise<Response> {
   const safetyChecksResponse: Response | null = domainSafetyChecks(ctx);

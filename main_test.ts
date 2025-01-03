@@ -24,8 +24,8 @@ Deno.test("POST /api/register", async () => {
   assertExists(body.token);
 
   server.shutdown()
-  Deno.removeSync(`./DOMAINS/${body.productionDomain}`)
-  Deno.removeSync(`./DOMAINS/${body.stagingDomain}`)
+  Deno.removeSync(`/var/www/${body.productionDomain}`)
+  Deno.removeSync(`/var/www/${body.stagingDomain}`)
 });
 
 // Deno.test("GET request", async () => {
