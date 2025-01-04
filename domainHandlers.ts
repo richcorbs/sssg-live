@@ -92,7 +92,9 @@ export async function handleCreateDomain(ctx: RequestContext,): Promise<Response
       if (domain.value === null) {
         await KV.set(domainTokenKey, token);
         if (Array.isArray(domains.value) && domains.value.includes(newDomain)) {
-          return new Response("Domain already registered", { status: 400 });
+          return new Response(
+            JSON.stringify({ message: "Domain already registered" }),
+            { status: 400 });
         } else {
           await KV.set(
             tokenDomainsKey,
